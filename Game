@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global Strike Command - Advanced Theater Simulator</title>
+    <title>Global Strike Command: Total War</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -11,690 +11,592 @@
             --neon-green: #39ff14;
             --neon-red: #ff3131;
             --neon-gold: #f39c12;
+            --neon-purple: #9d50bb;
             --bg-dark: #05080a;
-            --panel-bg: rgba(13, 19, 28, 0.9);
+            --panel-bg: rgba(13, 19, 28, 0.95);
             --border-color: rgba(0, 212, 255, 0.2);
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             background-color: var(--bg-dark);
-            background-image: 
-                linear-gradient(rgba(0, 212, 255, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 212, 255, 0.05) 1px, transparent 1px);
+            background-image: linear-gradient(rgba(0, 212, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 212, 255, 0.05) 1px, transparent 1px);
             background-size: 50px 50px;
             color: #d1d9e6;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
+            margin: 0; padding: 20px;
+            display: flex; justify-content: center;
             min-height: 100vh;
         }
 
         .container {
-            max-width: 1100px;
-            width: 100%;
+            max-width: 1100px; width: 100%;
             background: var(--panel-bg);
             backdrop-filter: blur(12px);
-            padding: 40px;
-            border-radius: 4px;
+            padding: 30px; border-radius: 4px;
             border: 1px solid var(--border-color);
             box-shadow: 0 0 50px rgba(0, 0, 0, 0.9);
-            animation: bootUp 0.6s cubic-bezier(0.23, 1, 0.32, 1);
         }
 
-        @keyframes bootUp {
-            0% { opacity: 0; transform: scale(0.98); filter: brightness(2); }
-            100% { opacity: 1; transform: scale(1); filter: brightness(1); }
-        }
-
-        h1 {
-            text-align: center;
-            color: var(--neon-blue);
-            text-transform: uppercase;
-            letter-spacing: 6px;
-            font-weight: 900;
-            margin-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 20px;
-        }
-
+        /* Top Navigation */
         .top-nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            background: rgba(0,0,0,0.3);
-            padding: 15px;
-            border-radius: 4px;
+            display: grid; grid-template-columns: 1fr 2fr 1fr;
+            gap: 20px; align-items: center;
+            margin-bottom: 30px; background: rgba(0,0,0,0.5);
+            padding: 15px; border: 1px solid var(--border-color);
         }
 
-        .currency-display {
-            color: var(--neon-gold);
-            font-weight: bold;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 1.2rem;
-        }
+        .stat-block { display: flex; flex-direction: column; }
+        .stat-label { font-size: 0.65rem; text-transform: uppercase; color: #5a7b8c; letter-spacing: 1px; }
+        .stat-value { font-family: 'Courier New', monospace; font-weight: bold; font-size: 1.1rem; }
 
-        .shop-trigger {
-            background: var(--neon-gold);
-            color: #000;
-            border: none;
-            padding: 8px 15px;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 2px;
-            text-transform: uppercase;
-            font-size: 0.8rem;
-        }
+        .exp-container { width: 100%; background: #111; height: 10px; border-radius: 5px; margin-top: 5px; overflow: hidden; border: 1px solid #333; }
+        .exp-bar { height: 100%; background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple)); width: 0%; transition: width 0.5s ease; }
 
-        /* Mission Selection Cards */
-        .mission-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-        }
-
+        /* Missions */
+        .mission-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
         .mission-card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid var(--border-color);
-            padding: 30px;
-            border-radius: 8px;
-            transition: all 0.4s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            position: relative;
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border-color);
+            padding: 25px; border-radius: 8px; text-align: center; position: relative;
+        }
+        .lock-overlay { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.85); border-radius: 8px; z-index: 5; color: var(--neon-red);
         }
 
-        .mission-card i {
-            font-size: 3rem;
-            color: var(--neon-blue);
-            margin-bottom: 20px;
+        .diff-selector { display: flex; gap: 4px; margin: 15px 0; }
+        .diff-btn { 
+            flex: 1; padding: 6px; font-size: 0.7rem; background: #000; border: 1px solid #333; 
+            color: #666; cursor: pointer; text-transform: uppercase;
         }
+        .diff-btn.active.std { border-color: var(--neon-green); color: var(--neon-green); }
+        .diff-btn.active.hard { border-color: var(--neon-gold); color: var(--neon-gold); }
+        .diff-btn.active.vet { border-color: var(--neon-red); color: var(--neon-red); }
 
-        .difficulty-selector {
-            margin-top: 20px;
-            display: flex;
-            gap: 5px;
-            width: 100%;
+        /* Planning UI Updates */
+        .hud { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.5); }
+        .asset-scroll { max-height: 55vh; overflow-y: auto; padding-right: 10px; }
+        .category-header { color: var(--neon-gold); text-transform: uppercase; font-size: 0.8rem; margin: 20px 0 10px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        
+        .asset-card { 
+            background: rgba(255,255,255,0.02); 
+            border: 1px solid #222; 
+            padding: 15px; 
+            margin-bottom: 10px; 
+            border-radius: 6px;
+            transition: border-color 0.2s;
         }
+        .asset-card.active-selection { border-color: var(--neon-blue); background: rgba(0, 212, 255, 0.05); }
 
-        .diff-btn {
-            flex: 1;
-            padding: 8px 5px;
-            font-size: 0.7rem;
-            background: #111;
-            border: 1px solid #333;
-            color: #888;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: 0.2s;
-        }
+        /* Custom Stepper & Select */
+        .ui-controls { display: flex; align-items: center; gap: 15px; margin-top: 12px; }
+        
+        .stepper { display: flex; align-items: center; background: #000; border: 1px solid #444; border-radius: 4px; overflow: hidden; }
+        .step-btn { background: #1a1a1a; color: #fff; border: none; width: 30px; height: 30px; cursor: pointer; font-weight: bold; }
+        .step-btn:hover { background: #333; }
+        .step-value { width: 40px; text-align: center; color: var(--neon-green); font-family: monospace; font-weight: bold; }
 
-        .diff-btn.active.std { border-color: var(--neon-green); color: var(--neon-green); background: rgba(57, 255, 20, 0.15); }
-        .diff-btn.active.hard { border-color: var(--neon-gold); color: var(--neon-gold); background: rgba(243, 156, 18, 0.15); }
-        .diff-btn.active.vet { border-color: var(--neon-red); color: var(--neon-red); background: rgba(255, 49, 49, 0.15); }
-
-        .launch-mission-btn {
-            margin-top: 15px;
-            width: 100%;
-            padding: 10px;
-            background: var(--neon-blue);
-            color: #000;
-            font-weight: bold;
-            border: none;
-            cursor: pointer;
-            text-transform: uppercase;
-        }
-
-        /* Shop Modal */
-        #shop-screen {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
-            z-index: 100;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .shop-container {
-            background: var(--panel-bg);
-            max-width: 800px;
-            width: 100%;
-            padding: 30px;
-            border: 2px solid var(--neon-gold);
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .shop-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .shop-tab-btn {
-            flex: 1;
-            padding: 10px;
-            background: #111;
-            color: #888;
-            border: 1px solid #333;
-            cursor: pointer;
-            text-transform: uppercase;
+        .wave-select { 
+            flex: 1; 
+            background: #000; 
+            color: #ccc; 
+            border: 1px solid #444; 
+            padding: 6px; 
+            border-radius: 4px;
             font-size: 0.75rem;
-        }
-
-        .shop-tab-btn.active {
-            border-color: var(--neon-gold);
-            color: var(--neon-gold);
-            background: rgba(243, 156, 18, 0.1);
-        }
-
-        .shop-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            background: rgba(255,255,255,0.05);
-            margin-bottom: 10px;
-            border-radius: 4px;
-        }
-
-        .shop-item-info h4 { margin: 0; color: var(--neon-gold); }
-        .shop-item-info p { margin: 5px 0 0 0; font-size: 0.8rem; color: #aaa; }
-
-        .buy-btn {
-            background: var(--neon-gold);
-            color: #000;
-            border: none;
-            padding: 10px 20px;
-            font-weight: bold;
             cursor: pointer;
         }
-        .buy-btn:disabled { background: #333; color: #666; cursor: not-allowed; }
+        .wave-select option { background: #0a0a0a; color: #fff; }
 
-        /* HUD & Assets */
-        .hud {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: rgba(0,0,0,0.5);
-            border-left: 4px solid var(--neon-blue);
-        }
-
-        .hud-item { text-align: left; }
-        .hud-label { font-size: 0.7rem; color: #5a7b8c; text-transform: uppercase; font-weight: bold; }
-        .hud-value { font-size: 1.2rem; font-family: 'Courier New', Courier, monospace; color: var(--neon-green); }
-
-        .category-header {
-            color: var(--neon-gold);
-            text-transform: uppercase;
-            font-size: 0.9rem;
-            letter-spacing: 2px;
-            margin: 25px 0 15px 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .assets-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: 15px;
-        }
-
-        .asset-card {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 15px;
-            border-radius: 4px;
-        }
-
-        .asset-title {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: bold;
-            color: var(--neon-blue);
-            margin-bottom: 8px;
-        }
-
-        .asset-stats { font-size: 0.75rem; color: #7a8a99; }
-        .asset-limit-info { font-size: 0.65rem; color: var(--neon-gold); margin-top: 5px; }
-
-        .asset-input-group {
-            display: flex;
-            gap: 8px;
-            margin-top: 12px;
-        }
-
-        input[type="number"] {
-            background: #000;
-            border: 1px solid #333;
-            color: var(--neon-green);
-            padding: 5px;
-            width: 50px;
+        .trait-tag {
+            font-size: 0.6rem;
+            padding: 2px 6px;
             border-radius: 2px;
+            background: rgba(0,0,0,0.5);
+            margin-right: 5px;
+            text-transform: uppercase;
+            border: 1px solid transparent;
         }
+        .trait-sead { border-color: var(--neon-red); color: var(--neon-red); }
+        .trait-jam { border-color: var(--neon-purple); color: var(--neon-purple); }
+        .trait-dmg { border-color: var(--neon-gold); color: var(--neon-gold); }
 
-        select {
-            background: #000;
-            border: 1px solid #333;
-            color: #ccc;
-            flex-grow: 1;
-            font-size: 0.8rem;
-        }
+        /* Shop */
+        .shop-tabs { display: flex; gap: 5px; margin-bottom: 15px; }
+        .tab-btn { flex: 1; padding: 10px; background: #111; border: 1px solid #333; color: #888; cursor: pointer; }
+        .tab-btn.active { border-color: var(--neon-gold); color: var(--neon-gold); }
+        .shop-item { display: flex; justify-content: space-between; align-items: center; background: #000; padding: 12px; border: 1px solid #222; margin-bottom: 5px; }
 
-        .btn-primary {
-            background: var(--neon-red);
-            color: #fff;
-            border: none;
-            padding: 20px;
-            width: 100%;
-            font-size: 1.2rem;
-            font-weight: bold;
-            letter-spacing: 3px;
-            cursor: pointer;
-            margin-top: 30px;
-        }
+        /* Generic */
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100; justify-content: center; align-items: center; }
+        .modal { background: var(--panel-bg); width: 90%; max-width: 700px; padding: 30px; border: 1px solid var(--neon-blue); max-height: 90vh; overflow-y: auto; }
+        .btn-action { width: 100%; padding: 15px; border: none; font-weight: bold; text-transform: uppercase; cursor: pointer; margin-top: 10px; letter-spacing: 2px; }
+        .aar-log { background: #000; padding: 15px; font-family: monospace; font-size: 0.8rem; height: 180px; overflow-y: auto; color: #888; border: 1px solid #222; text-align: left; line-height: 1.5; }
 
-        #result-display {
-            margin-top: 25px;
-            padding: 20px;
-            border-radius: 4px;
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        .rebirth-ready { animation: pulse 1.5s infinite; color: var(--neon-purple) !important; font-weight: 900; }
+        
+        #storage-warning {
             display: none;
-            line-height: 1.6;
-            font-family: 'Courier New', Courier, monospace;
-        }
-
-        .result-success { background: rgba(57, 255, 20, 0.1); border: 1px solid var(--neon-green); color: var(--neon-green); display: block !important; }
-        .result-fail { background: rgba(255, 49, 49, 0.1); border: 1px solid var(--neon-red); color: var(--neon-red); display: block !important; }
-
-        @media (max-width: 768px) {
-            .hud { grid-template-columns: repeat(2, 1fr); }
+            background: #ff3131;
+            color: white;
+            text-align: center;
+            padding: 5px;
+            font-size: 0.7rem;
+            position: fixed;
+            top: 0; left: 0; width: 100%;
+            z-index: 1000;
         }
     </style>
 </head>
 <body>
+    <div id="storage-warning">Warning: Browser blocked saving. Progress will be lost on refresh. Try hosting on GitHub Pages.</div>
 
-    <!-- Selection Screen -->
     <div class="container" id="menu-screen">
         <div class="top-nav">
-            <div class="currency-display"><i class="fas fa-coins"></i> <span id="player-coins">0</span> Combat Credits</div>
-            <button class="shop-trigger" onclick="toggleShop(true)">Surplus Shop</button>
+            <div class="stat-block">
+                <span class="stat-label">Credits</span>
+                <span class="stat-value" style="color:var(--neon-gold)"><i class="fas fa-coins"></i> <span id="ui-coins">0</span></span>
+                <span class="stat-label" style="margin-top:4px">Yield Multi: x<span id="ui-multi">1.0</span></span>
+            </div>
+            <div class="stat-block">
+                <div style="display:flex; justify-content:space-between">
+                    <span class="stat-label">Command Level: <span id="ui-level" style="color:white">1</span></span>
+                    <span class="stat-label">EXP: <span id="ui-exp-cur">0</span>/<span id="ui-exp-next">100</span></span>
+                </div>
+                <div class="exp-container"><div class="exp-bar" id="ui-exp-bar"></div></div>
+            </div>
+            <div class="stat-block" style="align-items:flex-end">
+                <button class="btn-action" id="ui-rebirth-btn" style="margin:0; padding:5px 10px; font-size:0.7rem; background:#200a2b; color:#9d50bb; border:1px solid #9d50bb" onclick="doRebirth()">
+                    Rebirth <span id="ui-rebirths">0</span>
+                </button>
+                <button class="btn-action" style="margin:5px 0 0 0; padding:5px 10px; font-size:0.7rem; background:var(--neon-gold); color:black" onclick="openShop()">Surplus Shop</button>
+            </div>
         </div>
-        
-        <h1>Global Strike Authority</h1>
-        
+
+        <h2 style="text-align:center; text-transform:uppercase; letter-spacing:4px; margin-bottom:30px;">Strategic Operations Center</h2>
+
         <div class="mission-grid">
             <div class="mission-card">
-                <i class="fas fa-mountain-city"></i>
+                <i class="fas fa-mountain-city" style="font-size:3rem; color:var(--neon-blue)"></i>
                 <h3>Caracas Protocol</h3>
-                <p>Neutralize strategic infrastructure.</p>
-                <div class="difficulty-selector">
-                    <button class="diff-btn std active" onclick="setDiff(this, 1)">Std</button>
-                    <button class="diff-btn hard" onclick="setDiff(this, 1.3)">Hard</button>
-                    <button class="diff-btn vet" onclick="setDiff(this, 1.6)">Vet</button>
+                <p style="font-size:0.8rem; color:#888">Initial strike operations. Low air defense saturation.</p>
+                <div class="diff-selector">
+                    <button class="diff-btn std active" onclick="setMissionDiff(this, 1)">Std</button>
+                    <button class="diff-btn hard" onclick="setMissionDiff(this, 1.3)">Hard</button>
+                    <button class="diff-btn vet" onclick="setMissionDiff(this, 1.6)">Vet</button>
                 </div>
-                <button class="launch-mission-btn" onclick="startMission('Venezuela', 'strike')">Accept Mission</button>
-            </div>
-            
-            <div class="mission-card">
-                <i class="fas fa-industry"></i>
-                <h3>Persian Shield</h3>
-                <p>Heavy defense environment. Tight budget.</p>
-                <div class="difficulty-selector">
-                    <button class="diff-btn std active" onclick="setDiff(this, 1)">Std</button>
-                    <button class="diff-btn hard" onclick="setDiff(this, 1.3)">Hard</button>
-                    <button class="diff-btn vet" onclick="setDiff(this, 1.6)">Vet</button>
-                </div>
-                <button class="launch-mission-btn" onclick="startMission('Iran', 'strike')">Accept Mission</button>
+                <button class="btn-action" style="background:var(--neon-blue); color:black" onclick="prepMission('Venezuela', 'strike')">Accept Sortie</button>
             </div>
 
             <div class="mission-card">
-                <i class="fas fa-user-secret"></i>
-                <h3>Extraction: Bravo</h3>
-                <p>Secure High Value Target. Extreme precision.</p>
-                <div class="difficulty-selector">
-                    <button class="diff-btn std active" onclick="setDiff(this, 1)">Std</button>
-                    <button class="diff-btn hard" onclick="setDiff(this, 1.3)">Hard</button>
-                    <button class="diff-btn vet" onclick="setDiff(this, 1.6)">Vet</button>
+                <div class="lock-overlay" id="lock-iran">
+                    <i class="fas fa-lock" style="font-size:2rem"></i>
+                    <p>Requires Level 5</p>
                 </div>
-                <button class="launch-mission-btn" onclick="startMission('HVT', 'capture')">Accept Mission</button>
+                <i class="fas fa-industry" style="font-size:3rem; color:var(--neon-blue)"></i>
+                <h3>Persian Shield</h3>
+                <p style="font-size:0.8rem; color:#888">Heavy AA umbrella. Critical industrial targets.</p>
+                <div class="diff-selector">
+                    <button class="diff-btn std active" onclick="setMissionDiff(this, 1)">Std</button>
+                    <button class="diff-btn hard" onclick="setMissionDiff(this, 1.3)">Hard</button>
+                    <button class="diff-btn vet" onclick="setMissionDiff(this, 1.6)">Vet</button>
+                </div>
+                <button class="btn-action" style="background:var(--neon-blue); color:black" onclick="prepMission('Iran', 'strike')">Accept Sortie</button>
+            </div>
+
+            <div class="mission-card">
+                <div class="lock-overlay" id="lock-hvt">
+                    <i class="fas fa-lock" style="font-size:2rem"></i>
+                    <p>Requires Level 10</p>
+                </div>
+                <i class="fas fa-user-secret" style="font-size:3rem; color:var(--neon-blue)"></i>
+                <h3>Extraction: Bravo</h3>
+                <p style="font-size:0.8rem; color:#888">HVT capture. High precision required. SOF mandatory.</p>
+                <div class="diff-selector">
+                    <button class="diff-btn std active" onclick="setMissionDiff(this, 1)">Std</button>
+                    <button class="diff-btn hard" onclick="setMissionDiff(this, 1.3)">Hard</button>
+                    <button class="diff-btn vet" onclick="setMissionDiff(this, 1.6)">Vet</button>
+                </div>
+                <button class="btn-action" style="background:var(--neon-blue); color:black" onclick="prepMission('HVT', 'capture')">Accept Sortie</button>
             </div>
         </div>
     </div>
 
-    <!-- Shop Screen -->
-    <div id="shop-screen" onclick="if(event.target==this) toggleShop(false)">
-        <div class="shop-container">
-            <h2 style="color:var(--neon-gold); text-align:center; margin-bottom:20px;">MILITARY SURPLUS SHOP</h2>
-            
+    <!-- Shop Modal -->
+    <div id="shop-modal" class="overlay" onclick="if(event.target==this) closeShop()">
+        <div class="modal">
+            <h3 style="color:var(--neon-gold); text-align:center">MILITARY PROCUREMENT</h3>
             <div class="shop-tabs">
-                <button class="shop-tab-btn active" id="tab-assets" onclick="setShopTab('assets')">New Assets</button>
-                <button class="shop-tab-btn" id="tab-upgrades" onclick="setShopTab('upgrades')">Capacity Upgrades</button>
+                <button class="tab-btn active" id="tab-new" onclick="setShopTab('new')">Unlocks</button>
+                <button class="tab-btn" id="tab-cap" onclick="setShopTab('cap')">Upgrades</button>
             </div>
-
-            <div id="shop-items-list"></div>
-            <button class="btn-primary" style="background:var(--neon-gold); color:#000; margin-top:20px;" onclick="toggleShop(false)">RETURN TO BASE</button>
+            <div id="shop-list"></div>
+            <button class="btn-action" style="background:#333; color:white" onclick="closeShop()">Exit Shop</button>
         </div>
     </div>
 
     <!-- Planning Screen -->
     <div class="container" id="planning-screen" style="display:none;">
-        <h1 id="mission-title">Mission Planning</h1>
-
+        <h2 id="plan-title" style="color:var(--neon-blue); margin-top:0;">Mission Prep</h2>
         <div class="hud">
-            <div class="hud-item">
-                <div class="hud-label">Budget Available</div>
-                <div class="hud-value">$<span id="stat-budget">0</span>M</div>
+            <div><span class="stat-label">Budget</span><div class="stat-value" id="hud-budget">$0M</div></div>
+            <div><span class="stat-label">AA Defense</span><div class="stat-value" id="hud-defense">0%</div></div>
+            <div><span class="stat-label">Objective</span><div class="stat-value" id="hud-intel" style="font-size:0.8rem">...</div></div>
+            <div><span class="stat-label">Plan Cost</span><div class="stat-value" id="hud-cost">$0M</div></div>
+        </div>
+        <div class="asset-scroll" id="plan-assets"></div>
+        <button class="btn-action" id="launch-btn" style="background:var(--neon-red); color:white" onclick="executeSortie()" disabled>Select Assets to Deploy</button>
+        <button class="btn-action" style="background:transparent; color:#555; border:1px solid #333" onclick="goToMenu()">Abort Planning</button>
+    </div>
+
+    <!-- AAR Modal -->
+    <div id="aar-modal" class="overlay">
+        <div class="modal" style="text-align:center">
+            <h2 id="aar-title">MISSION COMPLETE</h2>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin:20px 0;">
+                <div style="background:rgba(0,0,0,0.4); padding:10px">
+                    <span class="stat-label">Combat Credits</span>
+                    <div class="stat-value" style="color:var(--neon-gold)" id="aar-credits">+0</div>
+                </div>
+                <div style="background:rgba(0,0,0,0.4); padding:10px">
+                    <span class="stat-label">Command EXP</span>
+                    <div class="stat-value" style="color:var(--neon-blue)" id="aar-exp">+0</div>
+                </div>
             </div>
-            <div class="hud-item">
-                <div class="hud-label">Area Defense</div>
-                <div class="hud-value"><span id="stat-defense">0</span>%</div>
-            </div>
-            <div class="hud-item">
-                <div class="hud-label">Objective Intel</div>
-                <div id="stat-intel" class="hud-value">...</div>
-            </div>
-            <div class="hud-item">
-                <div class="hud-label">Est. Cost</div>
-                <div class="hud-value">$<span id="stat-cost">0</span>M</div>
+            <div id="aar-logs" class="aar-log"></div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:20px">
+                <button class="btn-action" style="background:#333; color:white" onclick="goToMenu()">Main Menu</button>
+                <button class="btn-action" style="background:var(--neon-blue); color:black" onclick="redoMission()">Redo Mission</button>
+                <button class="btn-action" id="btn-next-tier" style="grid-column: span 2; background:var(--neon-gold); color:black" onclick="upgradeTier()">Increase Difficulty</button>
             </div>
         </div>
-
-        <div id="asset-container"></div>
-
-        <button class="btn-primary" onclick="launchMission()">EXECUTE SORTIE</button>
-        <div id="result-display"></div>
-        <button id="post-mission-btn" class="btn-primary" style="background: #222; display:none;" onclick="location.reload()">RETURN TO MENU</button>
     </div>
 
     <script>
-        // Persistence
-        let userData = JSON.parse(localStorage.getItem('gsa_save')) || {
-            coins: 50,
-            unlocked: ['F-22 Raptor', 'F-35 Lightning II', 'F-15E Strike Eagle', 'F-16C Wild Weasel', 'B-1B Lancer', 'B-52H Stratofortress', 'EA-18G Growler', 'TLAM (Tomahawk)', 'AH-64 Apache', 'MH-60 Black Hawk (SOF)'],
-            caps: {} // Map of Asset Name -> Additional Capacity
+        const INITIAL_USER = {
+            coins: 150, level: 1, exp: 0, rebirths: 0,
+            unlocked: ['F-16C Wild Weasel', 'F-15E Strike Eagle', 'B-52H Stratofortress', 'AH-64 Apache', 'TLAM (Tomahawk)', 'EA-18G Growler', 'B-1B Lancer'],
+            caps: {}
         };
 
-        const assetData = [
-            { cat: 'Fighters & SEAD', icon: 'fa-jet-fighter-up', name: 'F-22 Raptor', cost: 150, stealth: 95, damage: 50, sead: 10, startCap: 2, maxCap: 12 },
-            { cat: 'Fighters & SEAD', icon: 'fa-jet-fighter', name: 'F-35 Lightning II', cost: 110, stealth: 88, damage: 45, sead: 15, startCap: 4, maxCap: 16 },
-            { cat: 'Fighters & SEAD', icon: 'fa-jet-fighter', name: 'F-15E Strike Eagle', cost: 85, stealth: 30, damage: 80, sead: 5, startCap: 2, maxCap: 12 },
-            { cat: 'Fighters & SEAD', icon: 'fa-jet-fighter', name: 'F-16C Wild Weasel', cost: 65, stealth: 35, damage: 40, sead: 25, startCap: 4, maxCap: 12 },
-            
-            { cat: 'Strategic Bombers', icon: 'fa-ghost', name: 'B-2 Spirit', cost: 220, stealth: 98, damage: 150, startCap: 1, maxCap: 2, shop: true, price: 500 },
+        const ASSETS = [
+            { cat: 'Fighters & SEAD', icon: 'fa-jet-fighter-up', name: 'F-22 Raptor', cost: 150, stealth: 95, damage: 50, sead: 10, startCap: 2, maxCap: 8, shop: true, price: 400 },
+            { cat: 'Fighters & SEAD', icon: 'fa-jet-fighter', name: 'F-35 Lightning II', cost: 110, stealth: 88, damage: 45, sead: 15, startCap: 4, maxCap: 12, shop: true, price: 300 },
+            { cat: 'Fighters & SEAD', icon: 'fa-jet-fighter', name: 'F-15E Strike Eagle', cost: 85, stealth: 30, damage: 80, sead: 5, startCap: 2, maxCap: 10 },
+            { cat: 'Fighters & SEAD', icon: 'fa-jet-fighter', name: 'F-16C Wild Weasel', cost: 65, stealth: 35, damage: 40, sead: 25, startCap: 4, maxCap: 16 },
+            { cat: 'Strategic Bombers', icon: 'fa-ghost', name: 'B-2 Spirit', cost: 220, stealth: 98, damage: 150, startCap: 1, maxCap: 2, shop: true, price: 600 },
             { cat: 'Strategic Bombers', icon: 'fa-shuttle-space', name: 'B-21 Raider', cost: 280, stealth: 100, damage: 120, startCap: 1, maxCap: 2, shop: true, price: 1200 },
-            { cat: 'Strategic Bombers', icon: 'fa-plane-up', name: 'B-1B Lancer', cost: 130, stealth: 45, damage: 130, startCap: 1, maxCap: 4 },
-            { cat: 'Strategic Bombers', icon: 'fa-plane', name: 'B-52H Stratofortress', cost: 60, stealth: 10, damage: 200, startCap: 2, maxCap: 6 },
-            
-            { cat: 'Electronic Warfare', icon: 'fa-tower-broadcast', name: 'EA-18G Growler', cost: 115, stealth: 50, damage: 10, sead: 20, jam: 25, startCap: 1, maxCap: 5 },
-            { cat: 'Electronic Warfare', icon: 'fa-satellite-dish', name: 'EC-130H Compass Call', cost: 140, stealth: 25, damage: 5, jam: 45, startCap: 1, maxCap: 2, shop: true, price: 300 },
-            
-            { cat: 'Naval & Missile', icon: 'fa-ship', name: 'TLAM (Tomahawk)', cost: 15, stealth: 70, damage: 30, startCap: 8, maxCap: 20 },
-            { cat: 'Naval & Missile', icon: 'fa-anchor', name: 'Ohio-Class Sub (Strike)', cost: 500, stealth: 100, damage: 300, startCap: 1, maxCap: 1, shop: true, price: 800 },
-            
-            { cat: 'Special Ops & Rotary', icon: 'fa-helicopter', name: 'AH-64 Apache', cost: 45, stealth: 40, damage: 60, startCap: 2, maxCap: 8 },
-            { cat: 'Special Ops & Rotary', icon: 'fa-helicopter-symbol', name: 'MH-60 Black Hawk (SOF)', cost: 80, stealth: 75, damage: 5, so: true, startCap: 1, maxCap: 4 },
-            { cat: 'Special Ops & Rotary', icon: 'fa-gun', name: 'AC-130J Ghostrider', cost: 160, stealth: 20, damage: 250, startCap: 1, maxCap: 2, shop: true, price: 400 }
+            { cat: 'Strategic Bombers', icon: 'fa-plane-up', name: 'B-1B Lancer', cost: 130, stealth: 45, damage: 130, startCap: 1, maxCap: 4, shop: true, price: 350 },
+            { cat: 'Strategic Bombers', icon: 'fa-plane', name: 'B-52H Stratofortress', cost: 60, stealth: 10, damage: 200, startCap: 2, maxCap: 8 },
+            { cat: 'Electronic Warfare', icon: 'fa-tower-broadcast', name: 'EA-18G Growler', cost: 115, stealth: 50, damage: 10, sead: 20, jam: 25, startCap: 1, maxCap: 5, shop: true, price: 250 },
+            { cat: 'Electronic Warfare', icon: 'fa-satellite-dish', name: 'EC-130H Compass Call', cost: 140, stealth: 25, damage: 5, jam: 45, startCap: 1, maxCap: 2, shop: true, price: 450 },
+            { cat: 'Naval & Missile', icon: 'fa-ship', name: 'TLAM (Tomahawk)', cost: 15, stealth: 70, damage: 30, sead: 5, startCap: 8, maxCap: 32 },
+            { cat: 'Naval & Missile', icon: 'fa-anchor', name: 'Ohio-Class Sub (Strike)', cost: 500, stealth: 100, damage: 300, startCap: 1, maxCap: 1, shop: true, price: 1000 },
+            { cat: 'Special Ops & Rotary', icon: 'fa-helicopter', name: 'AH-64 Apache', cost: 45, stealth: 40, damage: 60, startCap: 2, maxCap: 12 },
+            { cat: 'Special Ops & Rotary', icon: 'fa-helicopter-symbol', name: 'MH-60 Black Hawk (SOF)', cost: 80, stealth: 75, damage: 5, so: true, startCap: 1, maxCap: 4, shop: true, price: 300 },
+            { cat: 'Special Ops & Rotary', icon: 'fa-gun', name: 'AC-130J Ghostrider', cost: 160, stealth: 20, damage: 250, startCap: 1, maxCap: 2, shop: true, price: 500 }
         ];
 
-        let state = {
-            budget: 0, defense: 0, minDmg: 0, maxDmg: Infinity,
-            type: 'strike', missionName: '', difficultyMult: 1, shopTab: 'assets'
-        };
+        let user;
+        let mState = { name: '', type: '', diff: 1, shopTab: 'new' };
 
-        function getAssetCap(asset) {
-            const extra = userData.caps[asset.name] || 0;
-            return Math.min(asset.maxCap, asset.startCap + extra);
+        // IMPROVED LOAD FOR GOOGLE SITES
+        function loadGame() {
+            try {
+                const saved = localStorage.getItem('gsa_totalwar_save');
+                if (saved) {
+                    user = JSON.parse(saved);
+                    user = { ...INITIAL_USER, ...user }; 
+                } else {
+                    user = { ...INITIAL_USER };
+                }
+            } catch (e) {
+                console.warn("Storage access denied by browser sandbox.", e);
+                document.getElementById('storage-warning').style.display = 'block';
+                user = { ...INITIAL_USER };
+            }
+            updateUI();
         }
 
         function save() {
-            localStorage.setItem('gsa_save', JSON.stringify(userData));
-            document.getElementById('player-coins').textContent = userData.coins;
+            try {
+                localStorage.setItem('gsa_totalwar_save', JSON.stringify(user));
+            } catch (e) {
+                console.warn("Could not save to localStorage.", e);
+            }
+            updateUI();
         }
 
-        function setDiff(btn, val) {
-            btn.parentElement.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            state.difficultyMult = val;
+        function updateUI() {
+            document.getElementById('ui-coins').textContent = Math.floor(user.coins);
+            document.getElementById('ui-level').textContent = user.level;
+            document.getElementById('ui-exp-cur').textContent = Math.floor(user.exp);
+            const nExp = Math.floor(100 * Math.pow(1.3, user.level - 1));
+            document.getElementById('ui-exp-next').textContent = nExp;
+            document.getElementById('ui-exp-bar').style.width = (user.exp / nExp * 100) + '%';
+            
+            const multi = (1 + (user.rebirths * 0.25)).toFixed(2);
+            document.getElementById('ui-multi').textContent = multi;
+            document.getElementById('ui-rebirths').textContent = user.rebirths;
+
+            document.getElementById('lock-iran').style.display = user.level >= 5 ? 'none' : 'flex';
+            document.getElementById('lock-hvt').style.display = user.level >= 10 ? 'none' : 'flex';
+
+            const rBtn = document.getElementById('ui-rebirth-btn');
+            if (user.level >= 20 && user.coins >= 2500) rBtn.classList.add('rebirth-ready');
+            else rBtn.classList.remove('rebirth-ready');
         }
 
-        function toggleShop(show) {
-            const shop = document.getElementById('shop-screen');
-            shop.style.display = show ? 'flex' : 'none';
-            if(show) renderShop();
+        function goToMenu() {
+            document.getElementById('planning-screen').style.display = 'none';
+            document.getElementById('aar-modal').style.display = 'none';
+            document.getElementById('menu-screen').style.display = 'block';
+            save(); 
         }
 
-        function setShopTab(tab) {
-            state.shopTab = tab;
-            document.querySelectorAll('.shop-tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(`tab-${tab}`).classList.add('active');
+        function addExp(v) {
+            user.exp += v;
+            let nExp = 100 * Math.pow(1.3, user.level - 1);
+            while (user.exp >= nExp) {
+                user.exp -= nExp;
+                user.level++;
+                nExp = 100 * Math.pow(1.3, user.level - 1);
+            }
+            save();
+        }
+
+        function doRebirth() {
+            if (user.level >= 20 && user.coins >= 2500) {
+                const rCount = user.rebirths + 1;
+                user = {...INITIAL_USER, rebirths: rCount};
+                save();
+                location.reload(); 
+            }
+        }
+
+        function openShop() {
+            document.getElementById('shop-modal').style.display = 'flex';
             renderShop();
         }
-
+        function closeShop() { document.getElementById('shop-modal').style.display = 'none'; }
+        function setShopTab(t) { mState.shopTab = t; renderShop(); }
+        
         function renderShop() {
-            const list = document.getElementById('shop-items-list');
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`tab-${mState.shopTab}`).classList.add('active');
+            const list = document.getElementById('shop-list');
             list.innerHTML = '';
-
-            if (state.shopTab === 'assets') {
-                assetData.filter(a => a.shop).forEach(item => {
-                    const isUnlocked = userData.unlocked.includes(item.name);
-                    const itemDiv = document.createElement('div');
-                    itemDiv.className = 'shop-item';
-                    itemDiv.innerHTML = `
-                        <div class="shop-item-info">
-                            <h4>${item.name}</h4>
-                            <p>${item.cat} - DMG: ${item.damage} STL: ${item.stealth}%</p>
-                        </div>
-                        <button class="buy-btn" ${isUnlocked || userData.coins < item.price ? 'disabled' : ''} onclick="buyItem('${item.name}', ${item.price})">
-                            ${isUnlocked ? 'UNLOCKED' : `<i class="fas fa-coins"></i> ${item.price}`}
-                        </button>
-                    `;
-                    list.appendChild(itemDiv);
-                });
-            } else {
-                // Render Upgrades for unlocked assets that can actually be upgraded
-                assetData.filter(a => userData.unlocked.includes(a.name) && a.maxCap > a.startCap).forEach(item => {
-                    const currentCap = getAssetCap(item);
-                    const isMaxed = currentCap >= item.maxCap;
-                    const upgradePrice = 150 + ((currentCap - item.startCap) * 100);
-                    
-                    const itemDiv = document.createElement('div');
-                    itemDiv.className = 'shop-item';
-                    itemDiv.innerHTML = `
-                        <div class="shop-item-info">
-                            <h4>${item.name} Expansion</h4>
-                            <p>Current Limit: ${currentCap} / Max: ${item.maxCap}</p>
-                        </div>
-                        <button class="buy-btn" ${isMaxed || userData.coins < upgradePrice ? 'disabled' : ''} onclick="buyUpgrade('${item.name}', ${upgradePrice})">
-                            ${isMaxed ? 'MAXED' : `<i class="fas fa-coins"></i> ${upgradePrice}`}
-                        </button>
-                    `;
-                    list.appendChild(itemDiv);
-                });
-            }
-        }
-
-        function buyItem(name, price) {
-            if(userData.coins >= price) {
-                userData.coins -= price;
-                userData.unlocked.push(name);
-                save();
-                renderShop();
-            }
-        }
-
-        function buyUpgrade(name, price) {
-            if(userData.coins >= price) {
-                userData.coins -= price;
-                userData.caps[name] = (userData.caps[name] || 0) + 1;
-                save();
-                renderShop();
-            }
-        }
-
-        function startMission(name, type) {
-            state.missionName = name;
-            state.type = type;
-            const mult = state.difficultyMult;
             
-            if (type === 'capture') {
-                state.budget = Math.floor((Math.random() * 200 + 600) / mult); 
-                state.defense = Math.floor((Math.random() * 30 + 30) * mult);
-                state.minDmg = Math.floor(250 * mult); 
-                state.maxDmg = Math.max(state.minDmg + 50, Math.floor(500 / mult)); 
+            if (mState.shopTab === 'new') {
+                ASSETS.filter(a => a.shop).forEach(a => {
+                    const owned = user.unlocked.includes(a.name);
+                    list.innerHTML += `<div class="shop-item">
+                        <div><div style="color:var(--neon-blue)">${a.name}</div><div style="font-size:0.6rem; color:#666">${a.cat}</div></div>
+                        <button class="buy-btn" ${owned || user.coins < a.price ? 'disabled' : ''} style="background:${owned?'#222':''}; padding: 8px 15px; cursor: pointer;" onclick="buyAsset('${a.name}', ${a.price})">
+                            ${owned ? 'OWNED' : `<i class="fas fa-coins"></i> ${a.price}`}
+                        </button></div>`;
+                });
             } else {
-                if (name === 'Iran') {
-                    state.budget = Math.floor((Math.random() * 300 + 900) / mult);
-                    state.defense = Math.floor((Math.random() * 20 + 70) * (mult > 1 ? 1.15 : 1));
-                    state.minDmg = Math.floor(850 * mult);
-                } else {
-                    state.budget = Math.floor((Math.random() * 500 + 1500) / mult);
-                    state.defense = Math.floor((Math.random() * 40 + 30) * mult);
-                    state.minDmg = Math.floor(600 * mult);
-                }
-                state.maxDmg = Infinity;
+                ASSETS.filter(a => user.unlocked.includes(a.name) && a.maxCap > a.startCap).forEach(a => {
+                    const cur = user.caps[a.name] || 0;
+                    const maxed = (a.startCap + cur) >= a.maxCap;
+                    const price = 200 + (cur * 150);
+                    list.innerHTML += `<div class="shop-item">
+                        <div><div style="color:var(--neon-gold)">${a.name} Capacity</div><div style="font-size:0.6rem; color:#666">Level ${cur} (${a.startCap+cur}/${a.maxCap})</div></div>
+                        <button class="buy-btn" ${maxed || user.coins < price ? 'disabled' : ''} style="background:${maxed?'#222':''}; padding: 8px 15px; cursor: pointer;" onclick="buyCap('${a.name}', ${price})">
+                            ${maxed ? 'MAXED' : `<i class="fas fa-coins"></i> ${price}`}
+                        </button></div>`;
+                });
+            }
+        }
+
+        function buyAsset(n, p) { if(user.coins >= p) { user.coins -= p; user.unlocked.push(n); save(); renderShop(); } }
+        function buyCap(n, p) { if(user.coins >= p) { user.coins -= p; user.caps[n] = (user.caps[n]||0) + 1; save(); renderShop(); } }
+
+        function setMissionDiff(btn, v) {
+            btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            mState.diff = v;
+        }
+
+        function prepMission(n, t) {
+            mState.name = n; mState.type = t;
+            const mult = mState.diff;
+            if (t === 'capture') {
+                mState.budget = Math.floor(700 / mult);
+                mState.defense = Math.floor(40 * mult);
+                mState.minD = Math.floor(300 * mult);
+                mState.maxD = Math.floor(550 / mult);
+                mState.bC = 250; mState.bE = 400;
+            } else if (n === 'Iran') {
+                mState.budget = Math.floor(1000 / mult);
+                mState.defense = Math.floor(70 * mult);
+                mState.minD = Math.floor(900 * mult);
+                mState.maxD = Infinity;
+                mState.bC = 180; mState.bE = 250;
+            } else {
+                mState.budget = Math.floor(1500 / mult);
+                mState.defense = Math.floor(30 * mult);
+                mState.minD = Math.floor(500 * mult);
+                mState.maxD = Infinity;
+                mState.bC = 100; mState.bE = 120;
             }
 
-            document.getElementById('stat-budget').textContent = state.budget;
-            document.getElementById('stat-defense').textContent = Math.min(100, state.defense);
-            document.getElementById('stat-intel').textContent = state.type === 'capture' ? `${state.minDmg}-${state.maxDmg} DMG` : `REQ: ${state.minDmg}+ DMG`;
-            document.getElementById('mission-title').textContent = `${name} - ${mult >= 1.6 ? 'Veteran' : mult >= 1.3 ? 'Hard' : 'Standard'}`;
-
-            renderPlanningAssets();
+            document.getElementById('hud-budget').textContent = `$${mState.budget}M`;
+            document.getElementById('hud-defense').textContent = `${Math.min(100, mState.defense)}%`;
+            document.getElementById('hud-intel').textContent = mState.maxD === Infinity ? `REQ: ${mState.minD}+` : `REQ: ${mState.minD}-${mState.maxD}`;
+            
+            renderPlanAssets();
             document.getElementById('menu-screen').style.display = 'none';
             document.getElementById('planning-screen').style.display = 'block';
         }
 
-        function renderPlanningAssets() {
-            const container = document.getElementById('asset-container');
-            const categories = [...new Set(assetData.map(a => a.cat))];
-            container.innerHTML = '';
-            categories.forEach(cat => {
-                const unlockedInCategory = assetData.filter(a => a.cat === cat && userData.unlocked.includes(a.name));
-                if (unlockedInCategory.length === 0) return;
+        function changeQty(btn, delta) {
+            const input = btn.parentElement.querySelector('.step-value');
+            const max = parseInt(input.dataset.max);
+            let val = parseInt(input.textContent) + delta;
+            if (val < 0) val = 0;
+            if (val > max) val = max;
+            input.textContent = val;
+            
+            const card = btn.closest('.asset-card');
+            if (val > 0) card.classList.add('active-selection');
+            else card.classList.remove('active-selection');
 
-                const head = document.createElement('div');
-                head.className = 'category-header';
-                head.innerHTML = `<i class="fas fa-microchip"></i> ${cat}`;
-                container.appendChild(head);
-                const list = document.createElement('div');
-                list.className = 'assets-list';
+            updateCost();
+        }
+
+        function renderPlanAssets() {
+            const list = document.getElementById('plan-assets');
+            list.innerHTML = '';
+            const cats = [...new Set(ASSETS.map(a => a.cat))];
+            
+            cats.forEach(c => {
+                const sub = ASSETS.filter(a => a.cat === c && user.unlocked.includes(a.name));
+                if (!sub.length) return;
                 
-                unlockedInCategory.forEach(a => {
-                    const currentCap = getAssetCap(a);
-                    const card = document.createElement('div');
-                    card.className = 'asset-card';
-                    card.innerHTML = `
-                        <div class="asset-title"><span><i class="fas ${a.icon}"></i> ${a.name}</span><span>$${a.cost}M</span></div>
-                        <div class="asset-stats">DMG: ${a.damage} | STL: ${a.stealth}%</div>
-                        <div class="asset-limit-info">Operational Capacity: ${currentCap}</div>
-                        <div class="asset-input-group">
-                            <input type="number" min="0" max="${currentCap}" value="0" onchange="updateTotalCost()" data-name="${a.name}">
-                            <select><option value="1">Wave 1</option><option value="2">Wave 2</option><option value="3">Wave 3</option></select>
-                        </div>
-                    `;
-                    list.appendChild(card);
+                list.innerHTML += `<div class="category-header">${c}</div>`;
+                sub.forEach(a => {
+                    const cap = a.startCap + (user.caps[a.name] || 0);
+                    let tags = `<span class="trait-tag trait-dmg">DMG: ${a.damage}</span>`;
+                    if (a.sead) tags += `<span class="trait-tag trait-sead">SEAD: -${a.sead}% AA</span>`;
+                    if (a.jam) tags += `<span class="trait-tag trait-jam">JAM: +${a.jam}% Stealth</span>`;
+                    if (a.so) tags += `<span class="trait-tag" style="border-color:var(--neon-green); color:var(--neon-green)">Spec Ops</span>`;
+
+                    list.innerHTML += `
+                        <div class="asset-card" data-name="${a.name}">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <div style="display:flex; align-items:center; gap:10px">
+                                    <i class="fas ${a.icon}" style="color:var(--neon-blue); font-size:1.2rem"></i>
+                                    <div>
+                                        <b style="font-size:0.95rem">${a.name}</b>
+                                        <div style="font-size:0.6rem; color:#666; margin-top:2px;">STL: ${a.stealth}% | COST: $${a.cost}M</div>
+                                    </div>
+                                </div>
+                                <div style="display:flex; flex-direction:column; align-items:flex-end">
+                                    <div style="display:flex; gap:3px">${tags}</div>
+                                </div>
+                            </div>
+                            <div class="ui-controls">
+                                <div class="stepper">
+                                    <button class="step-btn" onclick="changeQty(this, -1)">-</button>
+                                    <div class="step-value" data-name="${a.name}" data-max="${cap}">0</div>
+                                    <button class="step-btn" onclick="changeQty(this, 1)">+</button>
+                                </div>
+                                <select class="wave-select" onchange="updateCost()">
+                                    <option value="1">Wave 1 (EW / SEAD)</option>
+                                    <option value="2">Wave 2 (Strike)</option>
+                                    <option value="3">Wave 3 (Bunker / Cleanup)</option>
+                                </select>
+                                <div style="font-size:0.65rem; color:#555">MAX: ${cap}</div>
+                            </div>
+                        </div>`;
                 });
-                container.appendChild(list);
             });
+            updateCost();
         }
 
-        function updateTotalCost() {
-            let total = 0;
-            document.querySelectorAll('input[type="number"]').forEach(input => {
-                const asset = assetData.find(a => a.name === input.dataset.name);
-                const max = parseInt(input.max);
-                if (parseInt(input.value) > max) input.value = max;
-                total += parseInt(input.value || 0) * asset.cost;
+        function updateCost() {
+            let total = 0, count = 0;
+            document.querySelectorAll('.step-value').forEach(i => {
+                const a = ASSETS.find(x => x.name === i.dataset.name);
+                const v = parseInt(i.textContent || 0);
+                total += v * a.cost; count += v;
             });
-            const display = document.getElementById('stat-cost');
-            display.textContent = total;
-            display.style.color = total > state.budget ? 'var(--neon-red)' : 'var(--neon-green)';
+            
+            const costEl = document.getElementById('hud-cost');
+            costEl.textContent = `$${total}M`;
+            costEl.style.color = total > mState.budget ? 'var(--neon-red)' : 'var(--neon-green)';
+            
+            const launchBtn = document.getElementById('launch-btn');
+            launchBtn.disabled = (count === 0 || total > mState.budget);
         }
 
-        function launchMission() {
-            const resultBox = document.getElementById('result-display');
-            const totalCost = parseInt(document.getElementById('stat-cost').textContent);
-            if (totalCost > state.budget) return;
-
-            let currentDef = state.defense;
-            let jamming = 0;
-            let totalDmg = 0;
-            let lost = 0;
-            let soDeployed = 0;
-            let soHome = 0;
-            let logs = ["<strong>SYSTEMS ONLINE. COMMENCING SORTIE...</strong><br>"];
-
+        function executeSortie() {
+            let curDef = mState.defense, tDmg = 0, lost = 0, so = false, jam = 0;
+            let logs = ["<strong>ACCESSING MIL-SAT... CHANNEL ENCRYPTED.</strong>"];
+            
             [1, 2, 3].forEach(w => {
                 logs.push(`<strong>[PHASE ${w}]</strong>`);
                 document.querySelectorAll('.asset-card').forEach(card => {
-                    const qtyInput = card.querySelector('input');
-                    const qty = parseInt(qtyInput.value || 0);
-                    const wave = parseInt(card.querySelector('select').value);
-                    const asset = assetData.find(a => a.name === qtyInput.dataset.name);
+                    const qtyEl = card.querySelector('.step-value');
+                    const qty = parseInt(qtyEl.textContent || 0);
+                    const wave = parseInt(card.querySelector('.wave-select').value);
+                    const a = ASSETS.find(x => x.name === qtyEl.dataset.name);
                     
                     if (qty > 0 && wave === w) {
-                        for (let i = 0; i < qty; i++) {
-                            let stealth = Math.min(100, asset.stealth + jamming);
-                            let detected = (Math.random() * 100) < ((100 - stealth) * (currentDef / 100));
-                            if (detected) {
-                                lost++;
-                                logs.push(`<span style="color:var(--neon-red)">[X]</span> ${asset.name} lost.`);
+                        for(let x=0; x<qty; x++) {
+                            let stl = Math.min(100, a.stealth + jam);
+                            let hitChance = stl * (1 - (curDef/150));
+                            if (Math.random() * 100 > hitChance) {
+                                lost++; 
+                                logs.push(`<span style="color:var(--neon-red)">[LOST]</span> ${a.name}`);
                             } else {
-                                totalDmg += asset.damage;
-                                if (asset.sead) currentDef = Math.max(5, currentDef - (asset.sead / 2));
-                                if (asset.jam) jamming += (asset.jam / 4);
-                                if (asset.so) { soDeployed++; soHome++; }
-                                logs.push(`<span style="color:var(--neon-green)">[✓]</span> ${asset.name} objective cleared.`);
+                                tDmg += a.damage;
+                                if(a.sead) curDef = Math.max(5, curDef - a.sead);
+                                if(a.jam) jam += a.jam;
+                                if(a.so) so = true;
+                                logs.push(`<span style="color:var(--neon-green)">[HIT]</span> ${a.name}`);
                             }
                         }
                     }
                 });
             });
 
-            let win = true;
-            let msg = "";
-            if (state.type === 'capture') {
-                if (soDeployed === 0) { win = false; msg = "SOF extraction team not deployed."; }
-                else if (soHome === 0) { win = false; msg = "SOF team wiped out."; }
-                else if (totalDmg < state.minDmg) { win = false; msg = "Extraction failed: Perimeter held."; }
-                else if (totalDmg > state.maxDmg) { win = false; msg = "Target killed by excessive force."; }
-            } else if (totalDmg < state.minDmg) {
-                win = false; msg = "Target remains operational.";
-            }
-
-            if (lost > (state.difficultyMult >= 1.6 ? 2 : 4)) { win = false; msg = "High attrition forced a retreat."; }
-
-            const baseEarn = win ? 100 : 25;
-            const reward = Math.floor(baseEarn * state.difficultyMult);
-            userData.coins += reward;
-            save();
-
-            resultBox.className = win ? 'result-success' : 'result-fail';
-            resultBox.innerHTML = `
-                ${logs.join('<br>')}
-                <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:15px 0;">
-                <strong>RESULT:</strong> ${msg || "Mission Success."}<br>
-                DMG: ${totalDmg} | LOSSES: ${lost} | DEFENSE: ${currentDef.toFixed(1)}%<br>
-                <span style="color:var(--neon-gold)">+${reward} Combat Credits Earned</span>
-            `;
-            resultBox.style.display = 'block';
-            document.getElementById('post-mission-btn').style.display = 'block';
-            resultBox.scrollIntoView({ behavior: 'smooth' });
+            let win = (tDmg >= mState.minD && tDmg <= mState.maxD && lost <= (mState.diff > 1.3 ? 2 : 4));
+            if (mState.type === 'capture' && !so) win = false;
+            
+            const m = (1 + (user.rebirths * 0.25));
+            const rewC = Math.floor((win ? mState.bC : 20) * mState.diff * m);
+            const rewE = Math.floor((win ? mState.bE : 30) * mState.diff);
+            
+            user.coins += rewC; 
+            addExp(rewE);
+            
+            document.getElementById('aar-title').textContent = win ? "MISSION SUCCESS" : "MISSION FAILED";
+            document.getElementById('aar-title').style.color = win ? 'var(--neon-green)' : 'var(--neon-red)';
+            document.getElementById('aar-credits').textContent = `+${rewC}`;
+            document.getElementById('aar-exp').textContent = `+${rewE}`;
+            document.getElementById('aar-logs').innerHTML = logs.join('<br>') + `<br><br><b>FINAL DMG:</b> ${tDmg} | <b>LOSSES:</b> ${lost}`;
+            
+            const nBtn = document.getElementById('btn-next-tier');
+            nBtn.style.display = mState.diff < 1.6 ? 'block' : 'none';
+            
+            document.getElementById('aar-modal').style.display = 'flex';
         }
 
-        // Init
-        document.getElementById('player-coins').textContent = userData.coins;
+        function redoMission() {
+            document.getElementById('aar-modal').style.display = 'none';
+            prepMission(mState.name, mState.type);
+        }
+
+        function upgradeTier() {
+            mState.diff = mState.diff < 1.3 ? 1.3 : 1.6;
+            redoMission();
+        }
+
+        window.onload = loadGame;
     </script>
 </body>
 </html>
